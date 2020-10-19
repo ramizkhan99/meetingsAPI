@@ -145,7 +145,10 @@ func MeetingHandler(w http.ResponseWriter, r *http.Request) {
 		var meeting models.Meeting
 		_ = json.NewDecoder(r.Body).Decode(&meeting)
 
+		meeting.StartAt.Format(time.RFC3339)
+		meeting.EndAt.Format(time.RFC3339)
 		meeting.CreatedAt = time.Now()
+		meeting.CreatedAt.Format(time.RFC3339)
 
 		cur, e := collection.Find(context.TODO(), bson.D{})
 

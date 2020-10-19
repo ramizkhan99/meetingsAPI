@@ -7,9 +7,11 @@ import (
 	"encoding/json"
 	"log"
 	"net/http"
+	"strconv"
 
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
+	"go.mongodb.org/mongo-driver/mongo/options"
 	
 	"github.com/ramizkhan99/meetingsAPI/src/models"
 	"github.com/ramizkhan99/meetingsAPI/src/app"
@@ -76,9 +78,24 @@ func MeetingHandler(w http.ResponseWriter, r *http.Request) {
 			urlArray := strings.Split(r.URL.Path, "/")
 
 			if urlArray[1] == "meetings" {
-				log.Println(len(urlArray))
 				var meetings []models.Meeting
-				cur, err := collection.Find(context.TODO(), bson.D{})
+
+				opts := options.Find()
+				
+				skip, noSkip := strconv.Atoi(r.URL.Query()["skip"][0])
+				limit, noLimit := strconv.Atoi(r.URL.Query()["limit"][0])
+
+				if noSkip != nil {
+					skip = 0
+				}
+
+				if noLimit != nil {
+					limit = 0
+				}
+				
+				opts.SetLimit((int64)(limit))
+				opts.SetSkip((int64)(skip))
+				cur, err := collection.Find(context.TODO(), bson.D{}, opts)
 
 				if err != nil {
 					log.Fatal(err)
@@ -126,6 +143,32 @@ func MeetingHandler(w http.ResponseWriter, r *http.Request) {
 		_ = json.NewDecoder(r.Body).Decode(&meeting)
 
 		meeting.CreatedAt = time.Now()
+
+		filter := bson.M{"start": bson.M{"$gte": meeting.StartAt}, "end": bson.M{"$lte": meeting.EndAt}}
+		
+		cur, e := collection.Find(context.TODO(), filter)
+
+		if e != nil {
+			log.Fatal(e)
+			return
+		}
+
+		defer cur.Close(context.Background())
+		for cur.Next(context.Background()) {
+			var prevMeetings 	[]models.Meeting
+			var prevMeeting 	models.Meeting
+
+			e := cur.Decode(&prevMeeting)
+
+
+			if e != nil {
+				log.Fatal(e)
+				return
+			}
+
+			prevMeetings = append(prevMeetings, prevMeeting)
+		}
+
 		_, err := collection.InsertOne(context.TODO(), meeting)
 
 		if err != nil {

@@ -8,6 +8,7 @@ import (
 	"log"
 	"net/http"
 	"strconv"
+	"sync"
 
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
@@ -16,6 +17,8 @@ import (
 	"github.com/ramizkhan99/meetingsAPI/src/models"
 	"github.com/ramizkhan99/meetingsAPI/src/app"
 )
+
+var mutex sync.Mutex
 
 var collection = app.GetClient().Database("meetingsApi").Collection("Meetings")
 
@@ -33,7 +36,9 @@ func MeetingHandler(w http.ResponseWriter, r *http.Request) {
 
 			filter := bson.M{"start": bson.M{"$gte": queries["start"][0]}, "end": bson.M{"$lte": queries["end"][0]}}
 
+			mutex.Lock()
 			cur, err := collection.Find(context.TODO(), filter)
+			defer mutex.Unlock()
 
 			if err != nil {
 				log.Fatal(err)
@@ -98,7 +103,9 @@ func MeetingHandler(w http.ResponseWriter, r *http.Request) {
 				
 				opts.SetLimit((int64)(limit))
 				opts.SetSkip((int64)(skip))
+				mutex.Lock()
 				cur, err := collection.Find(context.TODO(), bson.D{}, opts)
+				defer mutex.Unlock()
 
 				if err != nil {
 					log.Fatal(err)
@@ -130,7 +137,9 @@ func MeetingHandler(w http.ResponseWriter, r *http.Request) {
 			meetingID, _ := primitive.ObjectIDFromHex(urlArray[len(urlArray)-1])
 			
 			filter := bson.M{"_id": meetingID}
+			mutex.Lock()
 			err := collection.FindOne(context.TODO(), filter).Decode(&meeting)
+			defer mutex.Unlock()
 		
 			if err != nil {
 				log.Fatal(err)
@@ -150,7 +159,9 @@ func MeetingHandler(w http.ResponseWriter, r *http.Request) {
 		meeting.CreatedAt = time.Now()
 		meeting.CreatedAt.Format(time.RFC3339)
 
+		mutex.Lock()
 		cur, e := collection.Find(context.TODO(), bson.D{})
+		defer mutex.Unlock()
 
 		if e != nil {
 			log.Fatal(e)
@@ -181,7 +192,9 @@ func MeetingHandler(w http.ResponseWriter, r *http.Request) {
 			prevMeetings = append(prevMeetings, prevMeeting)
 		}
 
+		mutex.Lock()
 		_, err := collection.InsertOne(context.TODO(), meeting)
+		defer mutex.Unlock()
 
 		if err != nil {
 			log.Fatal(json.NewEncoder(w).Encode(err))

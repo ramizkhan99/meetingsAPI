@@ -46,4 +46,4 @@ Checking for overlap of meetings of a particular participant which have an `RSVP
 3. Run `go build -o meetingsAPI`
 4. Run `./meetingsAPI`
 
-Or you can also use `go run *.go` instead or building and executing.
+Run `go test -v` to run unit tests

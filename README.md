@@ -38,3 +38,12 @@ Route to get a list of all meetings scheduled between t1 and t2 of a certain par
 
 ### What is broken
 Checking for overlap of meetings of a particular participant which have an `RSVP = Yes` is broken. The README would be updated if it is fixed.
+
+
+### How to run
+1. Clone the repo
+2. `cd meetingsAPI`
+3. Run `go build -o meetingsAPI`
+4. Run `./meetingsAPI`
+
+Or you can also use `go run *.go` instead or building and executing.

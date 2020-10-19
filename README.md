@@ -22,5 +22,5 @@ Body:
 #### GET /meetings
 Route to get all meetings
 
-#### GET /meetings/<meetingID>
+#### GET /meetings/:meetingID
 Route to get a meeting with an objectID of `meetingID`

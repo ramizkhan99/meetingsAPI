@@ -9,7 +9,7 @@ import (
 )
 
 func TestGetMeetings(t *testing.T) {
-	req, err := http.NewRequest("GET", "/meeetings", nil)
+	req, err := http.NewRequest("GET", "/meetings", nil)
 
 	if err != nil {
 		t.Fatal(err)

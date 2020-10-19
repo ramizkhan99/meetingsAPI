@@ -144,9 +144,7 @@ func MeetingHandler(w http.ResponseWriter, r *http.Request) {
 
 		meeting.CreatedAt = time.Now()
 
-		filter := bson.M{"start": bson.M{"$gte": meeting.StartAt}, "end": bson.M{"$lte": meeting.EndAt}}
-		
-		cur, e := collection.Find(context.TODO(), filter)
+		cur, e := collection.Find(context.TODO(), bson.D{})
 
 		if e != nil {
 			log.Fatal(e)
@@ -160,11 +158,19 @@ func MeetingHandler(w http.ResponseWriter, r *http.Request) {
 
 			e := cur.Decode(&prevMeeting)
 
-
 			if e != nil {
 				log.Fatal(e)
 				return
 			}
+
+			// for k, v := range prevMeeting.Participants {
+			// 	if v.Email == meeting.Email && v.RSVP == "Yes" && meeting.RSVP == "Yes" {
+			// 		if (prevMeeting.StartAt > meeting.StartAt && v.StartAt < meeting.EndAt) || (v.EndAt > meeting.StartAt && v.EndAt < meeting.EndAt) {
+			// 			log.Fatal("Meeting Overlap")
+			// 			return
+			// 		}
+			// 	}
+			// }
 
 			prevMeetings = append(prevMeetings, prevMeeting)
 		}
@@ -179,3 +185,5 @@ func MeetingHandler(w http.ResponseWriter, r *http.Request) {
 		json.NewEncoder(w).Encode(meeting)
 	}	
 }
+
+// TODO: Add overlap check and send proper reponse with HTTP status code

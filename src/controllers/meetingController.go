@@ -79,18 +79,21 @@ func MeetingHandler(w http.ResponseWriter, r *http.Request) {
 
 			if urlArray[1] == "meetings" {
 				var meetings []models.Meeting
-
+				var skip, limit int
+				var noSkip, noLimit error
 				opts := options.Find()
 				
-				skip, noSkip := strconv.Atoi(r.URL.Query()["skip"][0])
-				limit, noLimit := strconv.Atoi(r.URL.Query()["limit"][0])
+				if len(r.URL.Query()["skip"]) > 0 && len(r.URL.Query()["limit"]) > 0 {
+					skip, noSkip = strconv.Atoi(r.URL.Query()["skip"][0])
+					limit, noLimit = strconv.Atoi(r.URL.Query()["limit"][0])
+				}
 
 				if noSkip != nil {
 					skip = 0
 				}
 
 				if noLimit != nil {
-					limit = 0
+					limit = 10
 				}
 				
 				opts.SetLimit((int64)(limit))
